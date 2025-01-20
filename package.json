@@ -1,16 +1,21 @@
 {
-  "name": "@mkantor/either",
+  "name": "@matt.kantor/either",
   "version": "0.0.0",
-  "type": "module",
-  "main": "dist/index.js",
-  "scripts": {
-    "clean": "rm -rf dist *.tsbuildinfo",
-    "build": "tsc --build"
+  "dependencies": {
+    "@matt.kantor/either-tag-symbol": "*"
   },
   "devDependencies": {
     "typescript": "^5.7.3"
   },
   "files": [
     "dist/*"
-  ]
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "repository": "github:mkantor/either",
+  "scripts": {
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "build": "tsc --build"
+  },
+  "type": "module"
 }
