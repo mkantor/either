@@ -69,12 +69,14 @@ export const tryCatch = <RightValue>(
   }
 }
 
-export const unwrapOrElse = <RightValue, FallbackValue>(
-  either: Either<unknown, RightValue>,
-  fallback: () => FallbackValue,
-): RightValue | FallbackValue => (isRight(either) ? either.value : fallback())
+export const unwrapOrElse = <RightValue, FallbackValue, LeftValue>(
+  either: Either<LeftValue, RightValue>,
+  fallback: (value: LeftValue) => FallbackValue,
+): RightValue | FallbackValue =>
+  isRight(either) ? either.value : fallback(either.value)
 
-export const unwrapLeftOrElse = <LeftValue, FallbackValue>(
-  either: Either<LeftValue, unknown>,
-  fallback: () => FallbackValue,
-): LeftValue | FallbackValue => (isLeft(either) ? either.value : fallback())
+export const unwrapLeftOrElse = <LeftValue, FallbackValue, RightValue>(
+  either: Either<LeftValue, RightValue>,
+  fallback: (value: RightValue) => FallbackValue,
+): LeftValue | FallbackValue =>
+  isLeft(either) ? either.value : fallback(either.value)
