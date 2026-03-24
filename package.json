@@ -12,7 +12,10 @@
   ],
   "license": "MIT",
   "main": "dist/index.js",
-  "repository": "github:mkantor/either",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mkantor/either.git"
+  },
   "scripts": {
     "clean": "rm -rf dist *.tsbuildinfo",
     "build": "tsc --build"
