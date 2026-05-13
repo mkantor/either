@@ -59,6 +59,50 @@ export const mapLeft = <LeftValue, RightValue, NewLeftValue>(
     right: makeRight,
   })
 
+/**
+ * Transform an array of `Either`s into a `Right` containing an array, or a
+ * `Left` containing the first `Left` value in `eithers`.
+ */
+export const sequence = <
+  const Eithers extends readonly Either<unknown, unknown>[],
+>(
+  eithers: Eithers,
+): SequenceOutput<Eithers> => {
+  const firstEither = eithers[0]
+
+  const returnValue =
+    firstEither === undefined
+      ? makeRight([])
+      : eithers.reduce<
+          // Unfortunately TypeScript doesn't keep track of the specific
+          // left/right types in the `Eithers` type parameter—instead it falls
+          // back to the concrete constraint types.
+          Either<unknown, readonly unknown[]>
+        >(
+          (combinedEither, currentEither) =>
+            flatMap(combinedEither, combinedValue =>
+              map(currentEither, currentValue => [
+                ...combinedValue,
+                currentValue,
+              ]),
+            ),
+          map(firstEither, value => [value]),
+        )
+
+  // The above `reduce` callback is guaranteed to produce an `Either` whose
+  // `Right` type is an array of the same length as `Eithers`, but that's not
+  // provable in TypeScript's type system.
+  return returnValue as SequenceOutput<Eithers>
+}
+type SequenceOutput<Eithers extends readonly Either<unknown, unknown>[]> =
+  Either<
+    LeftValueOf<Eithers[number]>,
+    ReduceNevers<{
+      -readonly [Index in keyof Eithers]: RightValueOf<Eithers[Index]>
+    }>
+  > &
+    unknown // Hide `SequenceOutput` from type info.
+
 export const tryCatch = <RightValue>(
   operation: () => RightValue,
 ): Either<unknown, RightValue> => {
@@ -80,3 +124,20 @@ export const unwrapLeftOrElse = <LeftValue, FallbackValue, RightValue>(
   fallback: (value: RightValue) => FallbackValue,
 ): LeftValue | FallbackValue =>
   isLeft(either) ? either.value : fallback(either.value)
+
+type RightValueOf<SpecificEither extends Either<unknown, unknown>> =
+  SpecificEither extends Right<infer RightValue> ? RightValue : never
+
+type LeftValueOf<SpecificEither extends Either<unknown, unknown>> =
+  SpecificEither extends Left<infer LeftValue> ? LeftValue : never
+
+/**
+ * Convert uninhabited tuples to `never` (e.g. `[never]` becomes `never`).
+ */
+type ReduceNevers<Tuple extends readonly unknown[]> = Tuple extends Tuple // Distribute over unions.
+  ? {
+      [Index in keyof Tuple]: Tuple[Index] extends never ? unknown : never
+    }[number] extends never
+    ? Tuple
+    : never
+  : never
